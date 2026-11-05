@@ -2,12 +2,12 @@ package model;
 
 import java.util.ArrayList;
 
-/** A person who can log in. role is "ADMIN" or "MEMBER". */
+
 public class User {
 
     private int id;
     private String username;
-    private String password;      // SHA-256 hash, never the plain text
+    private String password;     
     private String name;
     private String role;
     private ArrayList<Workout> workouts = new ArrayList<Workout>();

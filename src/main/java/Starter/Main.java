@@ -5,7 +5,7 @@ import gui.LoginFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-/** Entry point. Run this class. */
+
 public class Main {
 
     public static void main(String[] args) {

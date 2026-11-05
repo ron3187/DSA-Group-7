@@ -13,11 +13,7 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import model.Goal;
 
-/**
- * Goals: add / update / delete (JDBC), progress calculation and notifications.
- * Notifications use Java's PriorityQueue (Week 5-6): the goal with the nearest deadline comes out first.
- * userId = -1 means "all users" (admin view).
- */
+
 public class GoalService {
 
     public Goal[] getGoals(int userId) throws SQLException {
@@ -125,7 +121,7 @@ public class GoalService {
         }
     }
 
-    /** Adds up the user's logs between the goal's start date and its deadline. */
+   
     private int computeProgress(Connection con, Goal g) throws SQLException {
         String sql;
         if (Goal.BURN_CALORIES.equals(g.getType())) {

@@ -16,7 +16,7 @@ import javax.swing.JTextField;
 import model.User;
 import service.ReportService;
 
-/** Progress report generated from the user's input (user id + optional date range). */
+
 public class ReportPanel extends JPanel implements ActionListener {
 
     private final User currentUser;
@@ -99,6 +99,6 @@ public class ReportPanel extends JPanel implements ActionListener {
     }
 
     public void refreshTable() {
-        // nothing to reload: the report is only built when the button is pressed
+
     }
 }

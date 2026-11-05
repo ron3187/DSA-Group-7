@@ -1,11 +1,6 @@
 package model;
 
-/**
- * A fitness goal.
- * type = BURN_CALORIES   : burn at least targetValue kcal between startDate and deadline
- * type = WORKOUT_MINUTES : work out at least targetValue minutes between startDate and deadline
- * type = EAT_LIMIT       : eat at most targetValue kcal between startDate and deadline
- */
+
 public class Goal {
 
     public static final String BURN_CALORIES = "BURN_CALORIES";
@@ -17,9 +12,9 @@ public class Goal {
     private String title;
     private String type;
     private int targetValue;
-    private String startDate;     // yyyy-MM-dd
-    private String deadline;      // yyyy-MM-dd
-    private int currentValue;     // calculated by GoalService, NOT stored in the database
+    private String startDate;    
+    private String deadline;      
+    private int currentValue;    
 
     public Goal() {
     }

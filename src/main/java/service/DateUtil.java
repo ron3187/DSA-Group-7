@@ -8,7 +8,7 @@ public class DateUtil {
     private DateUtil() {
     }
 
-    /** Checks the text is a real date in yyyy-MM-dd form and returns it normalised. */
+    
     public static String parse(String text, String fieldName) {
         try {
             return LocalDate.parse(text.trim()).toString();

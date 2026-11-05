@@ -16,7 +16,6 @@ import javax.swing.table.DefaultTableModel;
 import model.User;
 import service.UserService;
 
-/** Admin only: manage user accounts. */
 public class UserPanel extends JPanel implements ActionListener, ListSelectionListener {
 
     private final User currentUser;

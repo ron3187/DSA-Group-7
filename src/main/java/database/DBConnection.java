@@ -25,7 +25,7 @@ public class DBConnection {
         return con;
     }
 
-    // Runs once: creates any table that doesn't exist yet
+
     private static void createTables(Connection con) throws SQLException {
         try (Statement st = con.createStatement()) {
 

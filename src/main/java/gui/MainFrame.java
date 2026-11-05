@@ -13,7 +13,7 @@ import javax.swing.SwingConstants;
 import model.User;
 import service.GoalService;
 
-/** Main window: navigation buttons on the left, one view panel shown at a time on the right. */
+
 public class MainFrame extends JFrame implements ActionListener {
 
     private final User currentUser;
@@ -24,8 +24,7 @@ public class MainFrame extends JFrame implements ActionListener {
     private MealPanel mealPanel;
     private GoalPanel goalPanel;
     private ReportPanel reportPanel;
-    private UserPanel userPanel;     // only created for admins
-
+    private UserPanel userPanel;    
     public MainFrame(User currentUser) {
         this.currentUser = currentUser;
 
@@ -103,7 +102,7 @@ public class MainFrame extends JFrame implements ActionListener {
         }
     }
 
-    /** Hides every view panel, then shows (and refreshes) the chosen one. */
+
     private void showPanel(JPanel panel, String title) {
         workoutPanel.setVisible(false);
         mealPanel.setVisible(false);
@@ -128,7 +127,7 @@ public class MainFrame extends JFrame implements ActionListener {
         lblTitle.setText("Fitness Tracker - " + title);
     }
 
-    /** Pop-up with the goal notifications (called once right after login). */
+
     public void showStartupNotifications() {
         GoalService goalService = new GoalService();
         int viewUserId = currentUser.isAdmin() ? -1 : currentUser.getId();

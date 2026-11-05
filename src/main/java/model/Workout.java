@@ -1,14 +1,14 @@
 package model;
 
-/** One logged workout. */
+
 public class Workout {
 
     private int workoutId;
     private int userId;
     private String name;
-    private int duration;        // minutes
+    private int duration;      
     private int caloriesBurned;
-    private String date;         // yyyy-MM-dd
+    private String date;         
 
     public Workout() {
     }

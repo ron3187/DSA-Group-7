@@ -9,11 +9,7 @@ import model.Meal;
 import model.User;
 import model.Workout;
 
-/**
- * Builds a text progress report for one user.
- * The daily totals go into a Binary Search Tree keyed by date, so an in-order
- * traversal (Left, Root, Right) lists the days in date order.
- */
+
 public class ReportService {
 
     private final UserService userService = new UserService();
@@ -36,7 +32,7 @@ public class ReportService {
         Workout[] workouts = workoutService.getWorkouts(userId);
         Meal[] meals = mealService.getMeals(userId);
 
-        // key = date, data = {burned, minutes, eaten, workoutCount, mealCount}
+  
         BST days = new BST();
         int totalBurned = 0;
         int totalMinutes = 0;

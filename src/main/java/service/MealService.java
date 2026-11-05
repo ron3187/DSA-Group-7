@@ -11,10 +11,7 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import model.Meal;
 
-/**
- * Meals: add / update / delete (JDBC) plus array storage, sorting by nutritional content
- * and binary search by name.  userId = -1 means "all users" (admin view).
- */
+
 public class MealService {
 
     public static final int SORT_CALORIES_ASC = 0;
@@ -32,7 +29,7 @@ public class MealService {
         return meals;
     }
 
-    /** Sorts the meals by calories, protein, carbs, fat or name (bubble sort). */
+  
     public Meal[] sortedMeals(int userId, int mode) throws SQLException {
         Meal[] all = getMeals(userId);
         if (mode == SORT_CALORIES_ASC) {
@@ -51,7 +48,7 @@ public class MealService {
         return all;
     }
 
-    /** Exact name search: sort by name, binary search the first match, then collect the repeats. */
+   
     public Meal[] searchByName(int userId, String name) throws SQLException {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Type a meal name to search for.");

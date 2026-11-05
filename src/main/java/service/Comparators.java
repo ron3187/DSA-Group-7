@@ -5,7 +5,7 @@ import model.Goal;
 import model.Meal;
 import model.Workout;
 
-/** Ready-made comparators used by the sorting / searching code. */
+
 public class Comparators {
 
     private Comparators() {
@@ -67,7 +67,7 @@ public class Comparators {
         }
     };
 
-    /** Earliest deadline first (yyyy-MM-dd strings sort correctly as text). */
+ 
     public static final Comparator<Goal> GOAL_BY_DEADLINE = new Comparator<Goal>() {
         @Override
         public int compare(Goal a, Goal b) {

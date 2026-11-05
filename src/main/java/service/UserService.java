@@ -9,10 +9,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.LinkedList;
 import model.User;
 
-/**
- * User accounts: login + add / update / delete (JDBC, like the Week 3-4 login example).
- * Passwords are stored hashed: MySQL's SHA2(password, 256) does the hashing.
- */
+
 public class UserService {
 
     private static final String COLUMNS = "id, username, password, name, role";
@@ -45,7 +42,7 @@ public class UserService {
         }
     }
 
-    /** Returns the User when the username and password match a row, otherwise null. */
+   
     public User login(String username, String password) throws SQLException {
         if (username == null || username.trim().isEmpty() || password == null) {
             return null;
@@ -79,7 +76,7 @@ public class UserService {
         }
     }
 
-    /** When newPlainPassword is empty the old password is kept. */
+
     public void updateUser(User u, String newPlainPassword) throws SQLException {
         validate(u);
         boolean changePassword = newPlainPassword != null && !newPlainPassword.isEmpty();
@@ -105,7 +102,7 @@ public class UserService {
         }
     }
 
-    /** Also deletes the user's workouts, meals and goals (ON DELETE CASCADE in the tables). */
+   
     public void deleteUser(int id) throws SQLException {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement("DELETE FROM users WHERE id = ?")) {

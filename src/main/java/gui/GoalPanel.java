@@ -20,7 +20,7 @@ import model.Goal;
 import model.User;
 import service.GoalService;
 
-/** Goals: add, update, delete + notifications (soonest deadline first, via priority queue). */
+
 public class GoalPanel extends JPanel implements ActionListener, ListSelectionListener {
 
     private final User currentUser;

@@ -11,14 +11,10 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import model.Workout;
 
-/**
- * Workouts: add / update / delete (JDBC) plus array storage, sorting and binary search.
- * The workouts are loaded into a plain Workout[] array (Week 2: array of objects).
- * userId = -1 means "all users" (admin view).
- */
+
 public class WorkoutService {
 
-    /** The array that holds the workouts of the last load (newest first). */
+ 
     private Workout[] workouts = new Workout[0];
 
     public Workout[] getWorkouts(int userId) throws SQLException {
@@ -26,25 +22,20 @@ public class WorkoutService {
         return workouts;
     }
 
-    /** Sorted by calories burned, highest first (bubble sort). */
+
     public Workout[] sortedByCalories(int userId) throws SQLException {
         Workout[] all = getWorkouts(userId);
         BubbleSort.sort(all, Comparators.WORKOUT_BY_CALORIES_DESC);
         return all;
     }
 
-    /** Sorted by name A-Z (bubble sort). */
     public Workout[] sortedByName(int userId) throws SQLException {
         Workout[] all = getWorkouts(userId);
         BubbleSort.sort(all, Comparators.WORKOUT_BY_NAME);
         return all;
     }
 
-    /**
-     * Exact name search (upper/lower case does not matter):
-     * 1) sort the array by name   2) binary search for the first match
-     * 3) walk to the right to collect every workout with the same name.
-     */
+ 
     public Workout[] searchByName(int userId, String name) throws SQLException {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Type a workout name to search for.");
@@ -144,7 +135,7 @@ public class WorkoutService {
                     }
                 }
             }
-            if (filled < count) {          // rows disappeared between the two queries
+            if (filled < count) {       
                 Workout[] smaller = new Workout[filled];
                 for (int i = 0; i < filled; i++) {
                     smaller[i] = loaded[i];

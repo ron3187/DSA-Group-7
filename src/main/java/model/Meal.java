@@ -1,6 +1,6 @@
 package model;
 
-/** One logged meal. protein / carbs / fat are in grams. */
+
 public class Meal {
 
     private int mealId;
@@ -10,9 +10,8 @@ public class Meal {
     private int protein;
     private int carbs;
     private int fat;
-    private String nutritionalInfo;   // free-text notes, e.g. "High protein, low sugar"
-    private String date;              // yyyy-MM-dd
-
+    private String nutritionalInfo;  
+    private String date;             
     public Meal() {
     }
 
