@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -92,6 +93,8 @@ public class ReportPanel extends JPanel implements ActionListener {
             GuiUtil.showError(this, ex.getMessage());
         } catch (IOException ex) {
             GuiUtil.showError(this, "Could not save the file: " + ex.getMessage());
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Database error: " + ex.getMessage());
         }
     }
 

@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -116,7 +117,7 @@ public class MealPanel extends JPanel implements ActionListener, ListSelectionLi
                 lblStatus.setText("Meal added.");
             } else if (src == btnUpdate) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Update Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Update Selected.");
                     return;
                 }
                 Meal m = readForm();
@@ -127,7 +128,7 @@ public class MealPanel extends JPanel implements ActionListener, ListSelectionLi
                 lblStatus.setText("Meal updated.");
             } else if (src == btnDelete) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Delete Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Delete Selected.");
                     return;
                 }
                 if (GuiUtil.confirm(this, "Delete the selected meal?")) {
@@ -160,6 +161,8 @@ public class MealPanel extends JPanel implements ActionListener, ListSelectionLi
             GuiUtil.showError(this, "Please enter whole numbers for User ID, Calories, Protein, Carbs and Fat.");
         } catch (IllegalArgumentException ex) {
             GuiUtil.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Database error: " + ex.getMessage());
         }
     }
 
@@ -185,7 +188,11 @@ public class MealPanel extends JPanel implements ActionListener, ListSelectionLi
     }
 
     public void refreshTable() {
-        fillTable(service.getMeals(viewUserId()));
+        try {
+            fillTable(service.getMeals(viewUserId()));
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Cannot load meals: " + ex.getMessage());
+        }
     }
 
     private void fillTable(Meal[] list) {

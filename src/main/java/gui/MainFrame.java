@@ -3,6 +3,7 @@ package gui;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -131,18 +132,22 @@ public class MainFrame extends JFrame implements ActionListener {
     public void showStartupNotifications() {
         GoalService goalService = new GoalService();
         int viewUserId = currentUser.isAdmin() ? -1 : currentUser.getId();
-        List<String> messages = goalService.getNotifications(viewUserId);
-        if (messages.isEmpty()) {
-            return;
+        try {
+            List<String> messages = goalService.getNotifications(viewUserId);
+            if (messages.isEmpty()) {
+                return;
+            }
+            StringBuilder sb = new StringBuilder("Goal notifications (nearest deadline first):\n\n");
+            int shown = Math.min(messages.size(), 8);
+            for (int i = 0; i < shown; i++) {
+                sb.append("- ").append(messages.get(i)).append("\n");
+            }
+            if (messages.size() > shown) {
+                sb.append("\n...and ").append(messages.size() - shown).append(" more on the Goals screen.");
+            }
+            GuiUtil.showInfo(this, sb.toString());
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Cannot load goal notifications: " + ex.getMessage());
         }
-        StringBuilder sb = new StringBuilder("Goal notifications (nearest deadline first):\n\n");
-        int shown = Math.min(messages.size(), 8);
-        for (int i = 0; i < shown; i++) {
-            sb.append("- ").append(messages.get(i)).append("\n");
-        }
-        if (messages.size() > shown) {
-            sb.append("\n...and ").append(messages.size() - shown).append(" more on the Goals screen.");
-        }
-        GuiUtil.showInfo(this, sb.toString());
     }
 }

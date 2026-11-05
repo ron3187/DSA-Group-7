@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -99,7 +100,7 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
                 lblStatus.setText("Workout added.");
             } else if (src == btnUpdate) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Update Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Update Selected.");
                     return;
                 }
                 Workout w = readForm();
@@ -110,7 +111,7 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
                 lblStatus.setText("Workout updated.");
             } else if (src == btnDelete) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Delete Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Delete Selected.");
                     return;
                 }
                 if (GuiUtil.confirm(this, "Delete the selected workout?")) {
@@ -145,6 +146,8 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
             GuiUtil.showError(this, "Please enter whole numbers for User ID, Duration and Calories Burned.");
         } catch (IllegalArgumentException ex) {
             GuiUtil.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Database error: " + ex.getMessage());
         }
     }
 
@@ -169,7 +172,11 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
 
     // ---------------------------------------------------------------- helpers
     public void refreshTable() {
-        fillTable(service.getWorkouts(viewUserId()));
+        try {
+            fillTable(service.getWorkouts(viewUserId()));
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Cannot load workouts: " + ex.getMessage());
+        }
     }
 
     private void fillTable(Workout[] list) {

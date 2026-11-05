@@ -3,6 +3,7 @@ package gui;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -55,7 +56,7 @@ public class LoginFrame extends JFrame implements ActionListener {
         add(btnLogin);
         add(btnExit);
 
-        JLabel lblHint = new JLabel("Admin: admin / admin123      Sample member: member01 / pass123",
+        JLabel lblHint = new JLabel("Admin: admin / admin123",
                 SwingConstants.CENTER);
         lblHint.setBounds(40, 365, 480, 24);
         lblHint.setFont(new Font("SansSerif", Font.PLAIN, 12));
@@ -79,15 +80,19 @@ public class LoginFrame extends JFrame implements ActionListener {
             GuiUtil.showError(this, "Please enter your username and password.");
             return;
         }
-        User user = userService.login(username, password);
-        if (user == null) {
-            GuiUtil.showError(this, "Wrong username or password.");
-            txtPassword.setText("");
-            return;
+        try {
+            User user = userService.login(username, password);
+            if (user == null) {
+                GuiUtil.showError(this, "Wrong username or password.");
+                txtPassword.setText("");
+                return;
+            }
+            MainFrame main = new MainFrame(user);
+            main.setVisible(true);
+            dispose();
+            main.showStartupNotifications();
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Cannot connect to the database. Check MySQL and DBConnection settings.\n" + ex.getMessage());
         }
-        MainFrame main = new MainFrame(user);
-        main.setVisible(true);
-        dispose();
-        main.showStartupNotifications();
     }
 }

@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.sql.SQLException;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -112,7 +113,7 @@ public class GoalPanel extends JPanel implements ActionListener, ListSelectionLi
                 lblStatus.setText("Goal added.");
             } else if (src == btnUpdate) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Update Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Update Selected.");
                     return;
                 }
                 Goal g = readForm();
@@ -123,7 +124,7 @@ public class GoalPanel extends JPanel implements ActionListener, ListSelectionLi
                 lblStatus.setText("Goal updated.");
             } else if (src == btnDelete) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Delete Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Delete Selected.");
                     return;
                 }
                 if (GuiUtil.confirm(this, "Delete the selected goal?")) {
@@ -143,6 +144,8 @@ public class GoalPanel extends JPanel implements ActionListener, ListSelectionLi
             GuiUtil.showError(this, "Please enter whole numbers for User ID and Target.");
         } catch (IllegalArgumentException ex) {
             GuiUtil.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Database error: " + ex.getMessage());
         }
     }
 
@@ -166,28 +169,36 @@ public class GoalPanel extends JPanel implements ActionListener, ListSelectionLi
     }
 
     public void refreshTable() {
-        Goal[] goals = service.getGoals(viewUserId());
-        model.setRowCount(0);
-        for (int i = 0; i < goals.length; i++) {
-            Goal g = goals[i];
-            String progress = g.getCurrentValue() + " (" + service.percentOf(g) + "%)";
-            model.addRow(new Object[] { g.getGoalId(), g.getUserId(), g.getTitle(), g.getType(),
-                    g.getStartDate(), g.getDeadline(), g.getTargetValue(), progress, service.statusOf(g) });
+        try {
+            Goal[] goals = service.getGoals(viewUserId());
+            model.setRowCount(0);
+            for (int i = 0; i < goals.length; i++) {
+                Goal g = goals[i];
+                String progress = g.getCurrentValue() + " (" + service.percentOf(g) + "%)";
+                model.addRow(new Object[] { g.getGoalId(), g.getUserId(), g.getTitle(), g.getType(),
+                        g.getStartDate(), g.getDeadline(), g.getTargetValue(), progress, service.statusOf(g) });
+            }
+            refreshNotifications();
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Cannot load goals: " + ex.getMessage());
         }
-        refreshNotifications();
     }
 
     private void refreshNotifications() {
-        List<String> messages = service.getNotifications(viewUserId());
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < messages.size(); i++) {
-            sb.append(messages.get(i)).append("\n");
+        try {
+            List<String> messages = service.getNotifications(viewUserId());
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < messages.size(); i++) {
+                sb.append(messages.get(i)).append("\n");
+            }
+            if (messages.isEmpty()) {
+                sb.append("No goals yet. Add one above to start getting notifications.");
+            }
+            txtNotifications.setText(sb.toString());
+            txtNotifications.setCaretPosition(0);
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Cannot load notifications: " + ex.getMessage());
         }
-        if (messages.isEmpty()) {
-            sb.append("No goals yet. Add one above to start getting notifications.");
-        }
-        txtNotifications.setText(sb.toString());
-        txtNotifications.setCaretPosition(0);
     }
 
     private int viewUserId() {

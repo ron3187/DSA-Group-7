@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -85,7 +86,7 @@ public class UserPanel extends JPanel implements ActionListener, ListSelectionLi
                 lblStatus.setText("User added.");
             } else if (src == btnUpdate) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Update Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Update Selected.");
                     return;
                 }
                 User u = readForm();
@@ -96,7 +97,7 @@ public class UserPanel extends JPanel implements ActionListener, ListSelectionLi
                 lblStatus.setText("User updated.");
             } else if (src == btnDelete) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Click a row in the table first, then press Delete Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first, then press Delete Selected.");
                     return;
                 }
                 if (selectedId == currentUser.getId()) {
@@ -115,6 +116,8 @@ public class UserPanel extends JPanel implements ActionListener, ListSelectionLi
             }
         } catch (IllegalArgumentException ex) {
             GuiUtil.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Database error: " + ex.getMessage());
         }
     }
 
@@ -136,11 +139,15 @@ public class UserPanel extends JPanel implements ActionListener, ListSelectionLi
     }
 
     public void refreshTable() {
-        User[] users = service.getAll();
-        model.setRowCount(0);
-        for (int i = 0; i < users.length; i++) {
-            User u = users[i];
-            model.addRow(new Object[] { u.getId(), u.getUsername(), u.getName(), u.getRole() });
+        try {
+            User[] users = service.getAll();
+            model.setRowCount(0);
+            for (int i = 0; i < users.length; i++) {
+                User u = users[i];
+                model.addRow(new Object[] { u.getId(), u.getUsername(), u.getName(), u.getRole() });
+            }
+        } catch (SQLException ex) {
+            GuiUtil.showError(this, "Cannot load users: " + ex.getMessage());
         }
     }
 
