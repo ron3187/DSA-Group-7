@@ -3,7 +3,6 @@ package gui;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.SQLException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -11,11 +10,8 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import model.User;
-import service.UserService;
 
 public class LoginFrame extends JFrame implements ActionListener {
-
-    private final UserService userService = new UserService();
 
     private JTextField txtUsername;
     private JPasswordField txtPassword;
@@ -39,25 +35,34 @@ public class LoginFrame extends JFrame implements ActionListener {
         lblSub.setFont(new Font("SansSerif", Font.PLAIN, 14));
         add(lblSub);
 
-        add(GuiUtil.makeLabel("Username", 100, 135, 360, 22));
-        txtUsername = GuiUtil.makeField(100, 160, 360, 36);
-        txtUsername.addActionListener(this);
+        JLabel lblUsername = new JLabel("Username");
+        lblUsername.setBounds(100, 135, 360, 22);
+        add(lblUsername);
+
+        txtUsername = new JTextField();
+        txtUsername.setBounds(100, 160, 360, 36);
         add(txtUsername);
 
-        add(GuiUtil.makeLabel("Password", 100, 210, 360, 22));
+        JLabel lblPassword = new JLabel("Password");
+        lblPassword.setBounds(100, 210, 360, 22);
+        add(lblPassword);
+
         txtPassword = new JPasswordField();
         txtPassword.setBounds(100, 235, 360, 36);
-        txtPassword.setFont(GuiUtil.FIELD_FONT);
-        txtPassword.addActionListener(this);      // pressing Enter logs in
+        txtPassword.addActionListener(this);
         add(txtPassword);
 
-        btnLogin = GuiUtil.makeButton("Login", 100, 295, 170, 44, this);
-        btnExit = GuiUtil.makeButton("Exit", 290, 295, 170, 44, this);
+        btnLogin = new JButton("Login");
+        btnLogin.setBounds(100, 295, 170, 44);
+        btnLogin.addActionListener(this);
         add(btnLogin);
+
+        btnExit = new JButton("Exit");
+        btnExit.setBounds(290, 295, 170, 44);
+        btnExit.addActionListener(this);
         add(btnExit);
 
-        JLabel lblHint = new JLabel("Admin: admin / admin123",
-                SwingConstants.CENTER);
+        JLabel lblHint = new JLabel("Click Login to continue", SwingConstants.CENTER);
         lblHint.setBounds(40, 365, 480, 24);
         lblHint.setFont(new Font("SansSerif", Font.PLAIN, 12));
         add(lblHint);
@@ -65,34 +70,13 @@ public class LoginFrame extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object src = e.getSource();
-        if (src == btnLogin || src == txtPassword || src == txtUsername) {
-            doLogin();
-        } else if (src == btnExit) {
-            System.exit(0);
-        }
-    }
-
-    private void doLogin() {
-        String username = txtUsername.getText().trim();
-        String password = new String(txtPassword.getPassword());
-        if (username.isEmpty() || password.isEmpty()) {
-            GuiUtil.showError(this, "Please enter your username and password.");
-            return;
-        }
-        try {
-            User user = userService.login(username, password);
-            if (user == null) {
-                GuiUtil.showError(this, "Wrong username or password.");
-                txtPassword.setText("");
-                return;
-            }
+        if (e.getSource() == btnLogin || e.getSource() == txtPassword) {
+            User user = new User(1, "guest", "", "Guest", "MEMBER");
             MainFrame main = new MainFrame(user);
             main.setVisible(true);
             dispose();
-            main.showStartupNotifications();
-        } catch (SQLException ex) {
-            GuiUtil.showError(this, "Cannot connect to the database. Check MySQL and DBConnection settings.\n" + ex.getMessage());
+        } else if (e.getSource() == btnExit) {
+            System.exit(0);
         }
     }
 }

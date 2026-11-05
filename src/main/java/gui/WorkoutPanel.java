@@ -1,9 +1,14 @@
 package gui;
 
+import database.DBConnection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -14,14 +19,11 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import model.User;
 import model.Workout;
-import service.WorkoutService;
 
-/** Workout log: add, update, delete, binary-search by name, sort by calories. */
 public class WorkoutPanel extends JPanel implements ActionListener, ListSelectionListener {
 
     private final User currentUser;
     private final boolean isAdmin;
-    private final WorkoutService service = new WorkoutService();
 
     private JTextField txtUserId, txtName, txtDuration, txtCalories, txtDate, txtSearch;
     private JButton btnAdd, btnUpdate, btnDelete, btnClear;
@@ -65,7 +67,7 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
         add(btnDelete);
         add(btnClear);
 
-        add(GuiUtil.makeLabel("Search by exact name (binary search)", 15, 135, 300, 22));
+        add(GuiUtil.makeLabel("Search by exact name", 15, 135, 300, 22));
         txtSearch = GuiUtil.makeField(15, 160, 260, 30);
         add(txtSearch);
         btnSearch = GuiUtil.makeButton("Search", 285, 158, 110, 34, this);
@@ -80,7 +82,9 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
         lblStatus = GuiUtil.makeLabel(" ", 15, 205, 860, 24);
         add(lblStatus);
 
-        model = GuiUtil.makeModel(new String[] { "ID", "User", "Workout", "Duration (min)", "Calories Burned", "Date" });
+        model = GuiUtil.makeModel(new String[] {
+            "ID", "User", "Workout", "Duration (min)", "Calories Burned", "Date"
+        });
         table = GuiUtil.makeTable(model);
         table.getSelectionModel().addListSelectionListener(this);
         add(GuiUtil.makeScroll(table, 15, 235, 860, 395));
@@ -88,60 +92,94 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
         clearForm();
     }
 
-    // ---------------------------------------------------------------- buttons
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
+
         try {
             if (src == btnAdd) {
-                service.addWorkout(readForm());
+                Workout workout = readForm();
+                String sql = "INSERT INTO workouts (user_id, name, duration, calories_burned, workout_date) VALUES (?, ?, ?, ?, ?)";
+
+                try (Connection con = DBConnection.getConnection();
+                     PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setInt(1, workout.getUserId());
+                    ps.setString(2, workout.getName());
+                    ps.setInt(3, workout.getDuration());
+                    ps.setInt(4, workout.getCaloriesBurned());
+                    ps.setString(5, workout.getDate());
+                    ps.executeUpdate();
+                }
+
                 refreshTable();
                 clearForm();
                 lblStatus.setText("Workout added.");
+
             } else if (src == btnUpdate) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Select a row in the table first, then press Update Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first.");
                     return;
                 }
-                Workout w = readForm();
-                w.setWorkoutId(selectedId);
-                service.updateWorkout(w);
+
+                Workout workout = readForm();
+                String sql = "UPDATE workouts SET user_id=?, name=?, duration=?, calories_burned=?, workout_date=? WHERE workout_id=?";
+
+                try (Connection con = DBConnection.getConnection();
+                     PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setInt(1, workout.getUserId());
+                    ps.setString(2, workout.getName());
+                    ps.setInt(3, workout.getDuration());
+                    ps.setInt(4, workout.getCaloriesBurned());
+                    ps.setString(5, workout.getDate());
+                    ps.setInt(6, selectedId);
+                    ps.executeUpdate();
+                }
+
                 refreshTable();
                 clearForm();
                 lblStatus.setText("Workout updated.");
+
             } else if (src == btnDelete) {
                 if (selectedId < 0) {
-                    GuiUtil.showError(this, "Select a row in the table first, then press Delete Selected.");
+                    GuiUtil.showError(this, "Select a row in the table first.");
                     return;
                 }
+
                 if (GuiUtil.confirm(this, "Delete the selected workout?")) {
-                    service.deleteWorkout(selectedId);
+                    String sql = "DELETE FROM workouts WHERE workout_id=?";
+
+                    try (Connection con = DBConnection.getConnection();
+                         PreparedStatement ps = con.prepareStatement(sql)) {
+                        ps.setInt(1, selectedId);
+                        ps.executeUpdate();
+                    }
+
                     refreshTable();
                     clearForm();
                     lblStatus.setText("Workout deleted.");
                 }
+
             } else if (src == btnClear) {
                 clearForm();
                 lblStatus.setText(" ");
+
             } else if (src == btnSearch) {
-                Workout[] found = service.searchByName(viewUserId(), txtSearch.getText());
-                fillTable(found);
-                if (found.length == 0) {
-                    lblStatus.setText("No workout named \"" + txtSearch.getText().trim() + "\" was found.");
-                } else {
-                    lblStatus.setText("Binary search found " + found.length + " workout(s).");
-                }
+                searchWorkouts();
+
             } else if (src == btnShowAll) {
                 txtSearch.setText("");
                 refreshTable();
-                lblStatus.setText("Showing all workouts (newest first).");
+                lblStatus.setText("Showing all workouts.");
+
             } else if (src == btnSortName) {
-                fillTable(service.sortedByName(viewUserId()));
-                lblStatus.setText("Sorted by name (A-Z) with bubble sort.");
+                sortWorkouts(true);
+                lblStatus.setText("Sorted by name.");
+
             } else if (src == btnSortCalories) {
-                fillTable(service.sortedByCalories(viewUserId()));
-                lblStatus.setText("Sorted by calories burned (highest first) with bubble sort.");
+                sortWorkouts(false);
+                lblStatus.setText("Sorted by calories burned.");
             }
+
         } catch (NumberFormatException ex) {
             GuiUtil.showError(this, "Please enter whole numbers for User ID, Duration and Calories Burned.");
         } catch (IllegalArgumentException ex) {
@@ -151,16 +189,18 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
         }
     }
 
-    // --------------------------------------------- click a row -> fill the form
     @Override
     public void valueChanged(ListSelectionEvent e) {
         if (e.getValueIsAdjusting()) {
             return;
         }
+
         int row = table.getSelectedRow();
+
         if (row < 0) {
             return;
         }
+
         selectedId = Integer.parseInt(model.getValueAt(row, 0).toString());
         txtUserId.setText(model.getValueAt(row, 1).toString());
         txtName.setText(model.getValueAt(row, 2).toString());
@@ -170,35 +210,179 @@ public class WorkoutPanel extends JPanel implements ActionListener, ListSelectio
         lblStatus.setText("Row selected. Edit the fields and press Update Selected.");
     }
 
-    // ---------------------------------------------------------------- helpers
     public void refreshTable() {
-        try {
-            fillTable(service.getWorkouts(viewUserId()));
+        String sql = "SELECT workout_id, user_id, name, duration, calories_burned, workout_date FROM workouts";
+
+        if (!isAdmin) {
+            sql += " WHERE user_id=?";
+        }
+
+        sql += " ORDER BY workout_id DESC";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            if (!isAdmin) {
+                ps.setInt(1, currentUser.getId());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                model.setRowCount(0);
+
+                while (rs.next()) {
+                    model.addRow(new Object[] {
+                        rs.getInt("workout_id"),
+                        rs.getInt("user_id"),
+                        rs.getString("name"),
+                        rs.getInt("duration"),
+                        rs.getInt("calories_burned"),
+                        rs.getString("workout_date")
+                    });
+                }
+            }
+
         } catch (SQLException ex) {
             GuiUtil.showError(this, "Cannot load workouts: " + ex.getMessage());
         }
     }
 
-    private void fillTable(Workout[] list) {
+    private void searchWorkouts() throws SQLException {
+        String search = txtSearch.getText().trim();
+        ArrayList<Workout> workouts = getWorkouts();
+
+        int low = 0;
+        int high = workouts.size() - 1;
+        int found = -1;
+
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            int comparison = workouts.get(mid).getName().compareToIgnoreCase(search);
+
+            if (comparison == 0) {
+                found = mid;
+                break;
+            } else if (comparison < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
         model.setRowCount(0);
-        for (int i = 0; i < list.length; i++) {
-            Workout w = list[i];
-            model.addRow(new Object[] { w.getWorkoutId(), w.getUserId(), w.getName(),
-                    w.getDuration(), w.getCaloriesBurned(), w.getDate() });
+
+        if (found >= 0) {
+            Workout w = workouts.get(found);
+            addWorkoutRow(w);
+            lblStatus.setText("Binary search found the workout.");
+        } else {
+            lblStatus.setText("Workout not found.");
         }
     }
 
-    /** -1 = every user (admin), otherwise only the logged-in member's rows. */
-    private int viewUserId() {
-        return isAdmin ? -1 : currentUser.getId();
+    private void sortWorkouts(boolean byName) throws SQLException {
+        ArrayList<Workout> workouts = getWorkouts();
+
+        for (int i = 0; i < workouts.size() - 1; i++) {
+            for (int j = 0; j < workouts.size() - i - 1; j++) {
+                boolean swap;
+
+                if (byName) {
+                    swap = workouts.get(j).getName().compareToIgnoreCase(
+                            workouts.get(j + 1).getName()) > 0;
+                } else {
+                    swap = workouts.get(j).getCaloriesBurned()
+                            < workouts.get(j + 1).getCaloriesBurned();
+                }
+
+                if (swap) {
+                    Workout temp = workouts.get(j);
+                    workouts.set(j, workouts.get(j + 1));
+                    workouts.set(j + 1, temp);
+                }
+            }
+        }
+
+        model.setRowCount(0);
+
+        for (Workout w : workouts) {
+            addWorkoutRow(w);
+        }
+    }
+
+    private ArrayList<Workout> getWorkouts() throws SQLException {
+        ArrayList<Workout> workouts = new ArrayList<>();
+        String sql = "SELECT workout_id, user_id, name, duration, calories_burned, workout_date FROM workouts";
+
+        if (!isAdmin) {
+            sql += " WHERE user_id=?";
+        }
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            if (!isAdmin) {
+                ps.setInt(1, currentUser.getId());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    workouts.add(new Workout(
+                        rs.getInt("workout_id"),
+                        rs.getInt("user_id"),
+                        rs.getString("name"),
+                        rs.getInt("duration"),
+                        rs.getInt("calories_burned"),
+                        rs.getString("workout_date")
+                    ));
+                }
+            }
+        }
+
+        for (int i = 0; i < workouts.size() - 1; i++) {
+            for (int j = 0; j < workouts.size() - i - 1; j++) {
+                if (workouts.get(j).getName().compareToIgnoreCase(
+                        workouts.get(j + 1).getName()) > 0) {
+                    Workout temp = workouts.get(j);
+                    workouts.set(j, workouts.get(j + 1));
+                    workouts.set(j + 1, temp);
+                }
+            }
+        }
+
+        return workouts;
+    }
+
+    private void addWorkoutRow(Workout w) {
+        model.addRow(new Object[] {
+            w.getWorkoutId(),
+            w.getUserId(),
+            w.getName(),
+            w.getDuration(),
+            w.getCaloriesBurned(),
+            w.getDate()
+        });
     }
 
     private Workout readForm() {
-        int userId = isAdmin ? Integer.parseInt(txtUserId.getText().trim()) : currentUser.getId();
+        int userId = isAdmin
+                ? Integer.parseInt(txtUserId.getText().trim())
+                : currentUser.getId();
+
         String name = txtName.getText().trim();
         int duration = Integer.parseInt(txtDuration.getText().trim());
         int calories = Integer.parseInt(txtCalories.getText().trim());
         String date = txtDate.getText().trim();
+
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Please enter a workout name.");
+        }
+
+        if (duration <= 0 || calories < 0) {
+            throw new IllegalArgumentException("Duration must be above 0 and calories cannot be negative.");
+        }
+
+        LocalDate.parse(date);
+
         return new Workout(0, userId, name, duration, calories, date);
     }
 

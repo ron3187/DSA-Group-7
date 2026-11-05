@@ -8,6 +8,15 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>26</maven.compiler.release>
-        <exec.mainClass>com.mycompany.fitness_tracker.Fitness_tracker</exec.mainClass>
+      <exec.mainClass>Starter.Main</exec.mainClass>
     </properties>
+    <dependencies>
+    <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
+        <version>9.4.0</version>
+    </dependency>
+</dependencies>
 </project>
+
+
