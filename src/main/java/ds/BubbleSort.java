@@ -1,4 +1,4 @@
-package Dsa;
+package ds;
 
 import java.util.Comparator;
 
